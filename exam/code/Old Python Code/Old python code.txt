@@ -1,0 +1,106 @@
+Nested for loop used before the new nested for loop.
+The new nested for loop is more pythonic.
+
+The change happened in the method Old_compare inside of the file prog_compare.py
+
+for y in range (50):
+		for x in range (50):
+			pxa = copyfirstpic[x,y]
+			pxb = copysecondpic[x,y]
+		
+			r2 = int(pxa[0])
+			r1 = int(pxb[0])
+			g2 = int(pxa[1])
+			g1 = int(pxb[1])
+			b2 = int(pxa[2])
+			b1 = int(pxb[2])
+			
+			sum += math.sqrt(((r2-r1)**2)+((g2-g1)**2)+((b2-b1)**2)) # euclidian distance
+	return sum
+	
+
+	
+Before the Euclidian_comparer inside of our code was there, we had two types of comparers, an old_compare and a new_compare.
+As you see on this method it is the new_compare but not used anymore.
+We saw both were equally as good so we used the old compare method, made it more pythonic and renamed it Euclidian_comparer.	
+
+def new_compare(firstpic, secondpic):	
+	imga_crop = firstpic[0:50, 0:50]
+	imgb_crop = secondpic[0:50, 0:50]
+	
+	compare_a = imga_crop/tolerance
+	compare_b = imgb_crop/tolerance
+	
+	#dist = np.linalg.norm(compare_b-compare_a)
+	
+	x = np.ndarray.flatten(compare_a)
+	y = np.ndarray.flatten(compare_b)
+	
+	dist = (y-x)**2
+	dist = math.sqrt(dist.sum())
+	
+	return dist
+	
+	Main method:
+	print("New compare says " + str(new_compare(a,b)))
+	
+	
+prog_isolate:
+It's because the opencv is stupid and hides images immediately, so this trick keeps showing the picture until ESC is pressed.
+	
+	def waitcv():
+	while True:
+		if cv2.waitKey(5) == 27:
+			break
+	cv2.destroyAllWindows()
+
+	
+prog_isolate
+This Method was used to test how to clip out a circluar object from a picture, to see how it can be used.
+We used another method for that now which is "find_contours".
+
+def mark_object(image, mask):
+	contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+	c = max(contours, key=cv2.contourArea)
+	((x, y), radius) = cv2.boundingRect(c)
+	cv2.circle(image, (int(x), int(y)), int(radius), (255, 0, 0), 5)
+	return image
+	
+	
+	
+	
+	
+prog_main:
+the __test_diff__ was to just sample against the first picture in the subdir and skip entirely if the result is off the hook
+but it had disappointing results with one of the pictures, so we cancelled it.
+	
+def compare_against_alternate(source_crop, platform):
+	comparables = [f for f in os.listdir(platform) if os.path.isfile(os.path.join(platform, f))]
+	
+	res = []
+	
+	boundary = 10000
+	
+	smallest = ("unknown", 99999)
+	
+	__test_diff__ = compare(
+		source_crop,
+		cv2.imread(
+			platform + "/" + comparables[0]
+		)
+	)
+	
+	if(__test_diff__ > boundary):
+		return smallest
+
+	for item in comparables:	
+		diff = compare(
+			source_crop,
+			cv2.imread(
+				platform + "/" + item
+			)
+		)
+		if(diff < smallest[1]):
+			smallest = (item, diff)
+
+	return smallest
